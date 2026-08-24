@@ -1,0 +1,8 @@
+# Copy this file to .dev.vars for local development.
+GEMINI_API_KEY=replace-with-your-google-ai-studio-key
+
+# Optional: raises GitHub API limits for public repositories.
+GITHUB_TOKEN=replace-with-a-fine-grained-token
+
+# Optional: defaults to gemini-3.7-flash.
+GEMINI_MODEL=gemini-3.7-flash
