@@ -26,4 +26,20 @@ describe('pull request endpoint', () => {
       error: { code: 'INVALID_PULL_REQUEST_URL' },
     })
   })
+
+  it('rejects unsupported review languages', async () => {
+    const response = await app.request('/api/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: 'https://github.com/acme/widgets/pull/7',
+        language: 'es',
+      }),
+    })
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: 'INVALID_REVIEW_LANGUAGE' },
+    })
+  })
 })

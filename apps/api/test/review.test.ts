@@ -80,7 +80,7 @@ describe('Gemini review client', () => {
       fetch: request,
       model: 'test-model',
     })
-    const result = await reviewer.review(snapshot)
+    const result = await reviewer.review(snapshot, 'pt-BR')
 
     expect(result.model).toBe('test-model')
     expect(result.review.findings[0]?.title).toBe('Unsafe user dereference')
@@ -91,6 +91,7 @@ describe('Gemini review client', () => {
     )
     const requestBody = JSON.parse(request.mock.calls[0]?.[1]?.body as string)
     expect(requestBody.contents[0].parts[0].text).toContain('<UNTRUSTED_PULL_REQUEST>')
+    expect(requestBody.contents[0].parts[0].text).toContain('in Brazilian Portuguese')
     expect(requestBody.generationConfig.responseMimeType).toBe('application/json')
   })
 

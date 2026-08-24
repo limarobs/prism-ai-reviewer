@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { createGithubClient, GithubApiError, parsePullRequestUrl } from './github'
 import { createReviewClient, ReviewProviderError } from './review'
+import type { ReviewLanguage } from './review'
 
 interface Bindings {
   GEMINI_API_KEY?: string
@@ -59,8 +60,9 @@ app.post('/api/pull-requests/resolve', async (context) => {
 })
 
 app.post('/api/reviews', async (context) => {
-  const body = await context.req.json<{ url?: unknown }>().catch(() => null)
+  const body = await context.req.json<{ language?: unknown; url?: unknown }>().catch(() => null)
   const url = typeof body?.url === 'string' ? body.url.trim() : ''
+  const language = body?.language ?? 'en'
   const locator = parsePullRequestUrl(url)
 
   if (!locator) {
@@ -69,6 +71,18 @@ app.post('/api/reviews', async (context) => {
         error: {
           code: 'INVALID_PULL_REQUEST_URL',
           message: 'Enter a valid public GitHub pull request URL.',
+        },
+      },
+      400,
+    )
+  }
+
+  if (language !== 'en' && language !== 'pt-BR') {
+    return context.json(
+      {
+        error: {
+          code: 'INVALID_REVIEW_LANGUAGE',
+          message: 'Choose English or Brazilian Portuguese.',
         },
       },
       400,
@@ -94,7 +108,7 @@ app.post('/api/reviews', async (context) => {
       apiKey: context.env.GEMINI_API_KEY,
       model: context.env.GEMINI_MODEL,
     })
-    const result = await reviewer.review(snapshot)
+    const result = await reviewer.review(snapshot, language as ReviewLanguage)
 
     return context.json({
       data: {
