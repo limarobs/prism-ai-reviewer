@@ -12,3 +12,18 @@ describe('health endpoint', () => {
     })
   })
 })
+
+describe('pull request endpoint', () => {
+  it('rejects invalid pull request URLs before calling GitHub', async () => {
+    const response = await app.request('/api/pull-requests/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'https://example.com/not-a-pull-request' }),
+    })
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: 'INVALID_PULL_REQUEST_URL' },
+    })
+  })
+})
