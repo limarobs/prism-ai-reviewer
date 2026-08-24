@@ -27,28 +27,27 @@ export function App() {
   return (
     <>
       <header className="site-header">
-        <a className="brand" href="/" aria-label="PRism home"><span className="brand-mark" aria-hidden="true" /><span>PRism</span></a>
-        <div className="header-note"><span className="status-dot" />Powered by Gemini</div>
+        <a className="brand" href="/" aria-label="PRism home"><span className="brand-mark" aria-hidden="true">P</span><span>PRism</span></a>
+        <a className="github-link" href="https://github.com/limarobs/prism-ai-reviewer" target="_blank" rel="noreferrer">GitHub ↗</a>
       </header>
       <main>
         <section className="hero">
-          <div className="hero-copy"><p className="eyebrow">AI-assisted code review</p><h1>See every pull request through a clearer lens.</h1><p className="lede">PRism finds concrete risks, suggests missing tests, and grounds every observation in the code that changed.</p></div>
-          <div className="hero-index" aria-hidden="true"><span>01</span><div /><small>Inspect<br />before merge</small></div>
+          <h1>Review a pull request.</h1>
+          <p className="lede">Paste a public GitHub pull request link to check the changes before merging.</p>
         </section>
         <form className="review-form" onSubmit={handleSubmit}>
           <label htmlFor="pull-request-url">Public GitHub pull request</label>
           <div className="input-row">
-            <span className="input-icon" aria-hidden="true">⌘</span>
             <input id="pull-request-url" name="pullRequestUrl" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://github.com/owner/repository/pull/42" required disabled={isLoading} />
-            <button type="submit" disabled={isLoading}>{isLoading ? 'Analyzing…' : 'Review pull request'}{!isLoading && <span aria-hidden="true">→</span>}</button>
+            <button type="submit" disabled={isLoading}>{isLoading ? 'Reviewing…' : 'Review PR'}</button>
           </div>
-          <p className="form-hint">Public repositories only. <button type="button" onClick={() => setUrl(EXAMPLE_URL)} disabled={isLoading}>Try an example</button></p>
+          <p className="form-hint">Public repositories only · <button type="button" onClick={() => setUrl(EXAMPLE_URL)} disabled={isLoading}>Use an example</button></p>
         </form>
         {error && <div className="error-message" role="alert"><strong>Review failed.</strong> {error}</div>}
-        {isLoading && <section className="loading-card" aria-live="polite"><div className="loader" /><div><strong>Reading the diff</strong><p>Tracing changes, risks, and missing test coverage…</p></div></section>}
+        {isLoading && <section className="loading-card" aria-live="polite"><div className="loader" /><div><strong>Reviewing changes</strong><p>This can take a few seconds.</p></div></section>}
         {review && <ReviewReport data={review} />}
       </main>
-      <footer><span>PRism / Evidence-based review</span><span>Built in the open</span></footer>
+      <footer><span>PRism</span><span>Pull request review</span></footer>
     </>
   )
 }

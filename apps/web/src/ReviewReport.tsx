@@ -20,13 +20,13 @@ export function ReviewReport({ data }: { data: ReviewData }) {
       {data.truncated && <p className="notice">This pull request exceeded the analysis limit. Results cover a partial diff.</p>}
       <div className="report-grid">
         <div className="report-main">
-          <article className="summary-card"><p className="section-label">Executive summary</p><p>{review.summary}</p></article>
-          <div className="findings-heading"><div><p className="section-label">Grounded findings</p><h3>What deserves attention</h3></div><span>{review.findings.length.toString().padStart(2, '0')}</span></div>
+          <article className="summary-card"><p className="section-label">Summary</p><p>{review.summary}</p></article>
+          <div className="findings-heading"><div><p className="section-label">Findings</p><h3>What to check</h3></div><span>{review.findings.length}</span></div>
           {review.findings.length === 0 ? <div className="clean-state"><span aria-hidden="true">✓</span><div><strong>No material issues found</strong><p>The analyzed diff did not reveal a concrete defect.</p></div></div> : (
             <div className="findings-list">{review.findings.map((finding, index) => <article className="finding-card" key={`${finding.file}-${finding.line}-${index}`}><div className="finding-meta"><span className={`severity severity-${finding.severity}`}>{finding.severity}</span><span>{finding.category}</span><span>{Math.round(finding.confidence * 100)}% confidence</span></div><h4>{finding.title}</h4><p>{finding.explanation}</p><EvidenceLink finding={finding} data={data} /><div className="recommendation"><span>Recommended fix</span><p>{finding.recommendation}</p></div></article>)}</div>
           )}
         </div>
-        <aside><div className="tests-card"><p className="section-label">Suggested coverage</p><h3>Tests worth adding</h3>{review.suggestedTests.length > 0 ? <ol>{review.suggestedTests.map((test) => <li key={test}>{test}</li>)}</ol> : <p>No additional test cases were suggested.</p>}</div><div className="run-meta"><div><span>Model</span><strong>{data.model}</strong></div><div><span>Total tokens</span><strong>{data.usage.totalTokens === null ? '—' : numberFormatter.format(data.usage.totalTokens)}</strong></div></div></aside>
+        <aside><div className="tests-card"><p className="section-label">Tests</p><h3>Suggested coverage</h3>{review.suggestedTests.length > 0 ? <ol>{review.suggestedTests.map((test) => <li key={test}>{test}</li>)}</ol> : <p>No additional test cases were suggested.</p>}</div></aside>
       </div>
     </section>
   )
