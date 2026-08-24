@@ -99,10 +99,47 @@ describe('Gemini review client', () => {
     const reviewer = createReviewClient({
       apiKey: 'test-key',
       fetch: vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 429 })),
+      retryDelayMs: 0,
     })
 
     await expect(reviewer.review(snapshot)).rejects.toEqual(
       expect.objectContaining<Partial<ReviewProviderError>>({ status: 429 }),
     )
+  })
+
+  it('retries a transient provider failure', async () => {
+    const request = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 503 }))
+      .mockResolvedValueOnce(
+        Response.json({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      summary: 'No material issues found.',
+                      riskLevel: 'low',
+                      findings: [],
+                      suggestedTests: [],
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      )
+    const reviewer = createReviewClient({
+      apiKey: 'test-key',
+      fetch: request,
+      retryDelayMs: 0,
+    })
+
+    await expect(reviewer.review(snapshot)).resolves.toMatchObject({
+      review: { riskLevel: 'low' },
+    })
+    expect(request).toHaveBeenCalledTimes(2)
   })
 })

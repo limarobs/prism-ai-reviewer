@@ -3,6 +3,8 @@ import type { PullRequestSnapshot } from './github'
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models'
 const DEFAULT_MODEL = 'gemini-3.7-flash'
 const MAX_DIFF_CHARACTERS = 120_000
+const MAX_PROVIDER_ATTEMPTS = 3
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504])
 
 const reviewSchema = {
   type: 'object',
@@ -197,18 +199,19 @@ export function createReviewClient(options: {
   apiKey: string
   fetch?: typeof fetch
   model?: string
+  retryDelayMs?: number
 }) {
   const request = options.fetch ?? fetch
   const model = options.model ?? DEFAULT_MODEL
+  const retryDelayMs = options.retryDelayMs ?? 300
 
   return {
     async review(
       snapshot: PullRequestSnapshot,
       language: ReviewLanguage = 'en',
     ): Promise<ReviewResponse> {
-      const response = await request(
-        `${GEMINI_API_URL}/${encodeURIComponent(model)}:generateContent`,
-        {
+      const requestUrl = `${GEMINI_API_URL}/${encodeURIComponent(model)}:generateContent`
+      const requestInit: RequestInit = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -222,15 +225,34 @@ export function createReviewClient(options: {
               responseJsonSchema: reviewSchema,
             },
           }),
-        },
-      )
+        }
 
-      if (!response.ok) {
-        throw new ReviewProviderError(
-          response.status === 429
+      let response: Response | null = null
+      for (let attempt = 1; attempt <= MAX_PROVIDER_ATTEMPTS; attempt += 1) {
+        response = await request(requestUrl, requestInit)
+        if (response.ok || !RETRYABLE_STATUSES.has(response.status) || attempt === MAX_PROVIDER_ATTEMPTS) {
+          break
+        }
+        if (retryDelayMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, retryDelayMs * attempt))
+        }
+      }
+
+      if (!response?.ok) {
+        const status = response?.status ?? 503
+        const message =
+          status === 429
             ? 'The review service is temporarily at capacity. Try again shortly.'
-            : 'The review service could not analyze this pull request.',
-          response.status,
+            : status === 401 || status === 403
+              ? 'The Gemini API key was rejected. Check the configured key.'
+              : status === 404
+                ? `The configured Gemini model (${model}) is not available.`
+                : status >= 500
+                  ? 'The review service is temporarily unavailable. Try again shortly.'
+                  : 'The review service rejected the analysis request.'
+        throw new ReviewProviderError(
+          message,
+          status,
         )
       }
 
