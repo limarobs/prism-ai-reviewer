@@ -27,24 +27,10 @@ footer {
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
   font-size: .95rem;
   font-weight: 650;
+  letter-spacing: -.02em;
   text-decoration: none;
-}
-
-.brand-mark {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border-radius: 7px;
-  background: #18181b;
-  color: #fff;
-  font-size: .76rem;
-  font-weight: 700;
 }
 
 .github-link {

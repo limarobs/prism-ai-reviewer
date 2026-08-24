@@ -64,7 +64,7 @@ export function App() {
   return (
     <>
       <header className="site-header">
-        <a className="brand" href="/" aria-label="PRism home"><span className="brand-mark" aria-hidden="true">P</span><span>PRism</span></a>
+        <a className="brand" href="/" aria-label="PRism home">PRism</a>
         <div className="header-actions">
           <div className="language-switch" aria-label="Language">
             <button className={language === 'pt-BR' ? 'active' : ''} type="button" onClick={() => changeLanguage('pt-BR')} disabled={isLoading}>PT</button>
